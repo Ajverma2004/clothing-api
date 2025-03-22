@@ -4,13 +4,11 @@ import os
 
 app = Flask(__name__)
 
-# Load from environment variable or paste directly
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://ajverma:kanieloutis@cluster0.ft1hj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-
-# Connect to MongoDB
+# Load from environment or local fallback
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/clothingDB")
 client = MongoClient(MONGO_URI)
 db = client["clothingDB"]
-collection = db["clothes"]
+collection = db["clothes"] 
 
 @app.route("/categories", methods=["GET"])
 def get_categories():
