@@ -1,48 +1,49 @@
 from flask import Flask, request, jsonify
-import json
+from pymongo import MongoClient
 import os
 
 app = Flask(__name__)
 
+# Load from environment variable or paste directly
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://ajverma:kanieloutis@cluster0.ft1hj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
-@app.route("/")
-def home():
-    return "Clothing API is running!"
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use Render's PORT
-    app.run(host="0.0.0.0", port=port)
-
-# ✅ Load clothing data from the JSON file
-with open("clothing_data.json", "r") as f:
-    clothing_data = json.load(f)
+# Connect to MongoDB
+client = MongoClient(MONGO_URI)
+db = client["clothingDB"]
+collection = db["clothes"]
 
 @app.route("/categories", methods=["GET"])
 def get_categories():
-    categories = list(set(item["category"].lower() for item in clothing_data))
-    return jsonify({"categories": categories})
+    categories = collection.distinct("category")
+    return jsonify({"categories": [cat.lower() for cat in categories]})
 
 @app.route("/category/<category_name>", methods=["GET"])
 def get_items_by_category(category_name):
-    items = [item for item in clothing_data if item["category"].lower() == category_name.lower()]
+    items = list(collection.find({"category": {"$regex": category_name, "$options": "i"}}, {"_id": 0}))
     return jsonify(items) if items else jsonify({"message": "No items found"}), 200
 
 @app.route("/search", methods=["GET"])
 def search_items():
     query = request.args.get("query", "").lower()
-    print(f"Received search query: {query}")
-
     if not query:
         return jsonify({"message": "Please provide a search query"}), 400
 
-    results = [
-        item for item in clothing_data
-        if any(word in item["name"].lower() or word in item["description"].lower() for word in query.split())
-    ]
+    items = list(collection.find(
+        {
+            "$or": [
+                {"name": {"$regex": query, "$options": "i"}},
+                {"description": {"$regex": query, "$options": "i"}}
+            ]
+        }, {"_id": 0}
+    ))
+    return jsonify(items) if items else jsonify({"message": "No matching items found"}), 200
 
-    print(f"Matching items: {results}")
-
-    return jsonify(results) if results else jsonify({"message": "No matching items found"}), 200
+@app.route("/add", methods=["POST"])
+def add_item():
+    data = request.get_json()
+    collection.insert_one(data)
+    return jsonify({"message": "Item added successfully"}), 201
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
