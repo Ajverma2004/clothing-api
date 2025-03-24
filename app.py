@@ -9,6 +9,7 @@ MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/clothingDB")
 client = MongoClient(MONGO_URI)
 db = client["clothingDB"]
 collection = db["clothes"] 
+banner_collection = db["banners"]
 
 @app.route("/categories", methods=["GET"])
 def get_categories():
@@ -41,6 +42,36 @@ def add_item():
     data = request.get_json()
     collection.insert_one(data)
     return jsonify({"message": "Item added successfully"}), 201
+
+
+
+@app.route("/banners", methods=["GET"])
+def get_banners():
+    banners = list(banner_collection.find({}, {"_id": 0}))
+    return jsonify(banners), 200
+
+@app.route("/banners", methods=["POST"])
+def add_banner():
+    data = request.get_json()
+    
+    # Basic validation
+    if not data or "category" not in data or "banner_url" not in data:
+        return jsonify({"message": "Both 'category' and 'banner_url' are required."}), 400
+
+    # Optional: Check if a banner for this category already exists
+    existing = banner_collection.find_one({"category": data["category"]})
+    if existing:
+        return jsonify({"message": f"Banner for category '{data['category']}' already exists."}), 409
+
+    # Insert the banner
+    banner_collection.insert_one({
+        "category": data["category"],
+        "banner_url": data["banner_url"]
+    })
+
+    return jsonify({"message": "Banner added successfully."}), 201
+
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
