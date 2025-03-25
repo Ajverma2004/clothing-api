@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 import os
+from bson.objectid import ObjectId
 
 app = Flask(__name__)
 
@@ -13,8 +14,23 @@ banner_collection = db["banners"]
 
 @app.route("/products", methods=["GET"])
 def get_all_products():
-    products = list(collection.find({}, {"_id": 0}))  # Exclude MongoDB's _id field
+    products = []
+    for product in collection.find():
+        product["_id"] = str(product["_id"])  # Convert ObjectId to string
+        products.append(product)
     return jsonify(products), 200
+
+@app.route("/product/<product_id>", methods=["GET"])
+def get_product_by_id(product_id):
+    try:
+        product = collection.find_one({"_id": ObjectId(product_id)})
+        if product:
+            product["_id"] = str(product["_id"])
+            return jsonify(product), 200
+        else:
+            return jsonify({"message": "Product not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Invalid product ID", "error": str(e)}), 400
 
 
 @app.route("/categories", methods=["GET"])
