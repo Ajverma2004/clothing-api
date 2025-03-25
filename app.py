@@ -11,6 +11,12 @@ db = client["clothingDB"]
 collection = db["clothes"] 
 banner_collection = db["banners"]
 
+@app.route("/products", methods=["GET"])
+def get_all_products():
+    products = list(collection.find({}, {"_id": 0}))  # Exclude MongoDB's _id field
+    return jsonify(products), 200
+
+
 @app.route("/categories", methods=["GET"])
 def get_categories():
     categories = collection.distinct("category")
