@@ -41,6 +41,10 @@ def get_categories():
 @app.route("/category/<category_name>", methods=["GET"])
 def get_items_by_category(category_name):
     items = list(collection.find({"category": {"$regex": category_name, "$options": "i"}}))
+    
+    for item in items:
+        item["_id"] = str(item["_id"])  # Convert ObjectId to string
+    
     return jsonify(items) if items else jsonify({"message": "No items found"}), 200
 
 @app.route("/search", methods=["GET"])
