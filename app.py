@@ -40,7 +40,7 @@ def get_categories():
 
 @app.route("/category/<category_name>", methods=["GET"])
 def get_items_by_category(category_name):
-    items = list(collection.find({"category": {"$regex": category_name, "$options": "i"}}, {"_id": 0}))
+    items = list(collection.find({"category": {"$regex": category_name, "$options": "i"}}))
     return jsonify(items) if items else jsonify({"message": "No items found"}), 200
 
 @app.route("/search", methods=["GET"])
