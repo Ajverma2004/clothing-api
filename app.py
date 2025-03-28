@@ -47,6 +47,8 @@ def get_items_by_category(category_name):
     
     return jsonify(items) if items else jsonify({"message": "No items found"}), 200
 
+from bson.objectid import ObjectId
+
 @app.route("/search", methods=["GET"])
 def search_items():
     query = request.args.get("query", "").lower()
@@ -57,11 +59,18 @@ def search_items():
         {
             "$or": [
                 {"name": {"$regex": query, "$options": "i"}},
-                {"description": {"$regex": query, "$options": "i"}}
+                {"description": {"$regex": query, "$options": "i"}},
+                {"category": {"$regex": query, "$options": "i"}}
             ]
-        }, {"_id": 0}
+        }
     ))
+
+    # Convert ObjectId to string
+    for item in items:
+        item["_id"] = str(item["_id"])
+
     return jsonify(items), 200
+
 
 @app.route("/add", methods=["POST"])
 def add_item():
