@@ -61,7 +61,7 @@ def search_items():
             ]
         }, {"_id": 0}
     ))
-    return jsonify(items) if items else jsonify({"message": "No matching items found"}), 200
+    return jsonify(items), 200
 
 @app.route("/add", methods=["POST"])
 def add_item():
