@@ -55,7 +55,7 @@ Hosted on **Fly.io** using Docker containerization and exposed at a public endpo
 ## 🔗 Linked Frontend
 
 View the full SnapClothes project here:  
-👉 [SnapClothes Mobile App Repo](https://github.com/yourusername/snapclothes)
+👉 [SnapClothes Mobile App Repo](https://github.com/Ajverma2004/SnapClothes)
 
 ---
 
